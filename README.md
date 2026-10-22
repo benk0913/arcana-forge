@@ -1,13 +1,13 @@
-# Talismaker v1.2 — game-style menus and guided World Workshop
+# Talismaker v1.2.1 — Gemini 3.8 update
 
 Talismaker is a browser-based customizable fantasy board-adventure for friends and bot players. It is an original game toolkit, not an official adaptation of Talisman.
 
 ## Update your existing Render website (no Node.js installation)
 
 1. **Back up** important worlds: on your existing website, export their JSON files before updating.
-2. Extract `Talismaker_v1.2.zip`. Upload the **contents of its `Talismaker/` folder** (not the outer folder) into your existing GitHub repository. Keep `public/`, `lib/`, `server.js`, `package.json`, and other subfolders in their original locations.
+2. Extract `Talismaker_v1.2.1.zip`. Upload the **contents of its `Talismaker/` folder** (not the outer folder) into your existing GitHub repository. Keep `public/`, `lib/`, `server.js`, `package.json`, and other subfolders in their original locations.
 3. Commit the changes. Render should deploy the new commit automatically. Otherwise, use **Manual Deploy → Deploy latest commit**.
-4. Refresh the original Render website, optionally using Ctrl+Shift+R. The web app cache name is bumped to v3 so previous code is replaced.
+4. Refresh the original Render website, optionally using Ctrl+Shift+R. The web app cache name is bumped to v4 so previous code is replaced.
 
 Keep your existing Render settings: **Build Command** `npm install` and **Start Command** `node server.js`. You do not need Node.js on your own PC; Render runs it for you. There are no third-party npm dependencies.
 
@@ -45,7 +45,7 @@ The key is held **only in this open page's memory**, not localStorage, source co
 
 **Alternative for a shared site:** The site owner can set `GEMINI_API_KEY` and `AI_ADMIN_PASSWORD` (8+ characters) in Render → Web Service → Environment. With this mode, leave the per-session key field empty and enter the creator password inside **Or use a server-configured Gemini key**. The password is required only for requests funded through the hosting owner's key. Keep it secret. If you have previously disclosed that password, change it in Render.
 
-AI world writing uses `gemini-2.5-flash` by default; illustrations use `gemini-2.5-flash-image` (override through `GEMINI_TEXT_MODEL` / `GEMINI_IMAGE_MODEL` in the environment if appropriate). Actual model access, availability, quotas and billing are controlled by Google; **image generation may incur fees**. The built-in AI endpoint tests use simulated provider responses and never charge API credits. World-generation instructions now explicitly respect a requested 4-layer adventure instead of forcing only 2–3 layers.
+AI world writing now uses **`gemini-3.8-flash`** by default; illustrations use **`gemini-3.1-flash-image`**. Both use Google’s current **Interactions API**, with `store:false`. Advanced owners can override models with `GEMINI_TEXT_MODEL` / `GEMINI_IMAGE_MODEL` in Render → Environment; old Talismaker 2.5 default IDs are automatically migrated to the newer defaults. An override pointing to any other unavailable model can still fail. Actual model access, availability, quotas and billing are controlled by Google; **image generation may incur fees**. The built-in AI endpoint tests use simulated Interactions API responses and never charge API credits. Live calls with a real key have not been tested by this package. World-generation instructions now explicitly respect a requested 4-layer adventure instead of forcing only 2–3 layers.
 
 ## Other gameplay features
 
@@ -83,3 +83,9 @@ Talismaker/
   package.json
   Start Talismaker.bat
 ```
+
+## Gemini error fix (v1.2.1)
+
+If you previously saw `models/gemini-2.5-flash is no longer available to new users`, update your repository to this version and wait for Render to finish deploying. Refresh with Ctrl+Shift+R. AI Studio now uses Gemini 3.8 Flash for world text/JSON and Gemini 3.1 Flash Image for art; you may continue using your existing Gemini key. No new creator password is needed if you paste your personal API key in AI Studio. Check Render → Environment for custom `GEMINI_TEXT_MODEL` and `GEMINI_IMAGE_MODEL` overrides pointing to unavailable models. The previous Talismaker 2.5 model values are auto-migrated.
+
+Google controls model availability, quotas, and billing; image generation may require a paid API tier. This version uses `POST /v1beta/interactions` directly, so there are still no third-party npm dependencies.

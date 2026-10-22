@@ -53,13 +53,17 @@ async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
  const blocked=await fetch(base+'/api/ai/world',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'make a world'})});assert.notEqual(blocked.status,200,'AI endpoints are locked until configured');
  // Exercise the complete provider adapter with synthetic model results (no API charges).
  process.env.AI_ADMIN_PASSWORD='testing-secret-123';process.env.GEMINI_API_KEY='not-a-real-key';
- const nativeFetch=global.fetch;let providerCalls=0,keysUsed=[];
+ const nativeFetch=global.fetch;let providerCalls=0,keysUsed=[];const providerRequests=[];
  global.fetch=async(url,options)=>{
-   if(String(url).startsWith('https://generativelanguage.googleapis.com/')){
+   if(String(url)==='https://generativelanguage.googleapis.com/v1beta/interactions'){
      providerCalls++;keysUsed.push(options.headers['x-goog-api-key']);
-     const imageRequest=String(url).includes('flash-image');
-     const parts=imageRequest?[{inlineData:{mimeType:'image/png',data:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/ld0AAAAASUVORK5CYII='}}]:[{text:JSON.stringify({...world,title:'AI Forest',cells:world.cells.slice(0,20),layers:world.layers.slice(0,2)})}];
-     return new Response(JSON.stringify({candidates:[{content:{parts}}]}),{status:200,headers:{'Content-Type':'application/json'}});
+     const request=JSON.parse(options.body);providerRequests.push(request);
+     assert.equal(request.store,false,'AI requests must not persist provider conversations');
+     const imageRequest=request.response_format.type==='image';
+     const parts=imageRequest
+       ? [{type:'image',mime_type:'image/png',data:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/ld0AAAAASUVORK5CYII='}]
+       : [{type:'text',text:JSON.stringify({...world,title:'AI Forest',cells:world.cells.slice(0,20),layers:world.layers.slice(0,2)})}];
+     return new Response(JSON.stringify({status:'completed',steps:[{type:'thought'},{type:'model_output',content:parts}]}),{status:200,headers:{'Content-Type':'application/json'}});
    }
    return nativeFetch(url,options);
  };
@@ -68,6 +72,10 @@ async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
  const generated=await(await nativeFetch(base+'/api/ai/world',{method:'POST',headers:aiHeaders,body:JSON.stringify({prompt:'Create the whispering forest'})})).json();assert.equal(generated.ok,true,JSON.stringify(generated));assert.equal(generated.world.title,'AI Forest');
  const imageResult=await(await nativeFetch(base+'/api/ai/image',{method:'POST',headers:aiHeaders,body:JSON.stringify({prompt:'Paint a mystical fortress on a floating island.',wide:true})})).json();
  assert.equal(imageResult.ok,true,JSON.stringify(imageResult));assert.match(imageResult.image,/^data:image\/png;base64,/);assert.equal(providerCalls,2);
+ assert.equal(providerRequests[0].model,'gemini-3.8-flash');
+ assert.equal(providerRequests[0].response_format.mime_type,'application/json');
+ assert.equal(providerRequests[1].model,'gemini-3.1-flash-image');
+ assert.equal(providerRequests[1].response_format.aspect_ratio,'16:9');
  // BYO Gemini key works without either Render environment variable, bypassing the old password requirement.
  const formerServerKey=process.env.GEMINI_API_KEY,formerPassword=process.env.AI_ADMIN_PASSWORD;
  delete process.env.GEMINI_API_KEY;delete process.env.AI_ADMIN_PASSWORD;
@@ -76,8 +84,18 @@ async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
  assert.equal(personal.ok,true,JSON.stringify(personal));assert.equal(personal.world.title,'AI Forest');
  const personalArt=await(await nativeFetch(base+'/api/ai/image',{method:'POST',headers:personalHeaders,body:JSON.stringify({prompt:'Paint a dramatic medieval castle illustration'})})).json();
  assert.equal(personalArt.ok,true,JSON.stringify(personalArt));
+ assert.equal(providerRequests[2].model,'gemini-3.8-flash');
+ assert.equal(providerRequests[3].model,'gemini-3.1-flash-image');
  assert.equal(keysUsed.at(-1),'fake-personal-Gemini-key-999');assert.equal(keysUsed.at(-2),'fake-personal-Gemini-key-999');
  process.env.GEMINI_API_KEY=formerServerKey;process.env.AI_ADMIN_PASSWORD=formerPassword;
+ // Old Render model overrides are migrated automatically.
+ process.env.GEMINI_TEXT_MODEL='gemini-2.5-flash';
+ process.env.GEMINI_IMAGE_MODEL='gemini-2.5-flash-image';
+ const migrated=await(await nativeFetch(base+'/api/ai/world',{method:'POST',headers:personalHeaders,body:JSON.stringify({prompt:'Create four fantasy realms'})})).json();
+ assert.equal(migrated.ok,true);assert.equal(providerRequests.at(-1).model,'gemini-3.8-flash');
+ const migratedArt=await(await nativeFetch(base+'/api/ai/image',{method:'POST',headers:personalHeaders,body:JSON.stringify({prompt:'Fantasy dungeon illustration'})})).json();
+ assert.equal(migratedArt.ok,true);assert.equal(providerRequests.at(-1).model,'gemini-3.1-flash-image');
+ delete process.env.GEMINI_TEXT_MODEL;delete process.env.GEMINI_IMAGE_MODEL;
  global.fetch=nativeFetch;
 
  console.log('✓ Create-room immediate state, auth, bots add/remove, automated full turns, AI world validation, server-password OR personal-key AI requests (mock provider), and automated bot turns passed.');
