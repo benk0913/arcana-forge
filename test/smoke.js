@@ -17,7 +17,7 @@ function sleep(ms){return new Promise(res=>setTimeout(res,ms));}
 (async()=>{
  const {server}=require('../server');await new Promise(res=>server.listening?res():server.once('listening',res));
  const health=await(await fetch(BASE+'/health')).json();assert.equal(health.ok,true);
- const home=await(await fetch(BASE+'/')).text();assert.match(home,/Arcana Forge/);
+ const home=await(await fetch(BASE+'/')).text();assert.match(home,/Talismaker/);
  const world=makeDefault();
  const host=await openSession(),guest=await openSession();
  let result=await act(host,'room:create',{scenario:world,name:'Host'});assert.equal(result.ok,true,JSON.stringify(result));

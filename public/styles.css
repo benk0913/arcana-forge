@@ -12,3 +12,22 @@
 @media(max-width:870px){.site-header{padding:10px 15px}.brand-name{font-size:15px}.brand-sub{font-size:8px}.brand-symbol{width:35px;height:35px}.top-nav button{padding:7px 8px;font-size:10px}.page{padding:22px 14px 42px}.hero{grid-template-columns:1fr}.hero-art{max-width:640px;margin:auto;width:100%;padding:5px}.hero-art .board-scene{min-width:0}.hero h1{font-size:clamp(37px,9vw,62px)}.library-grid{grid-template-columns:repeat(2,1fr)}.editor-layout,.lobby-layout{grid-template-columns:1fr}.inspector{position:static;max-height:none}.inspector-body{max-height:none}.game-layout{grid-template-columns:1fr}.game-layout .board-panel,.game-layout .sidebar-left{grid-column:auto;grid-row:auto}.game-layout>.sidebar-right{grid-column:auto;display:grid;grid-template-columns:1fr 1fr}.game-layout .board-panel{order:0}.game-layout .sidebar-left{order:1}.game-layout>.sidebar-right{order:2}.board-scene{min-width:650px}.character-grid{grid-template-columns:repeat(3,1fr)}}
 @media(max-width:560px){.site-header{flex-wrap:wrap;gap:8px}.top-nav{width:100%;justify-content:space-around}.top-nav button{font-size:11px}.hero-lead{font-size:14px}.hero-badge{right:3px;bottom:-6px}.features-line{gap:10px;font-size:10px}.library-grid{grid-template-columns:1fr}.join-strip{display:block;padding:20px}.join-entry{margin-top:15px}.join-entry input{flex:1}.page-top{align-items:flex-start}.page-actions{width:100%}.page-actions .btn{flex:1}.game-layout>.sidebar-right{grid-template-columns:1fr}.character-grid{grid-template-columns:repeat(2,1fr)}.board-scene{min-width:625px}.board-panel .board-toolbar{flex-wrap:wrap}.tile{width:9.5%}.tile .tile-name{font-size:8px}.tile .tile-icon{font-size:20px}.token{width:19px;height:19px}.help-layout{grid-template-columns:1fr}.hero-art .tile{width:9.7%;min-width:18px}.hero-art .tile .tile-name{font-size:clamp(5px,1.4vw,8px)}.hero-art .tile .tile-icon{font-size:clamp(10px,3vw,19px)}.hero-art .board-center .sigil-label{display:none}}
 .tile.editable{touch-action:none}
+/* Talismaker 1.1: AI Studio and bot lobby controls */
+.ai-modal{width:min(100%,650px);max-height:calc(100dvh - 28px);overscroll-behavior:contain;scrollbar-width:thin}
+.ai-modal h3{margin:12px 0 4px}
+.ai-modal form{display:block}
+.ai-modal input:not([type=checkbox]),.ai-modal select,.ai-modal textarea{display:block;width:100%;box-sizing:border-box;border:1px solid #38495b;border-radius:7px;color:#ede9df;background:#0e1723;padding:11px 12px;outline:none;min-height:42px;font:12px/1.5 var(--body);margin-top:8px;text-transform:none;letter-spacing:normal;font-weight:500}
+.ai-modal textarea{resize:vertical;min-height:82px}
+.ai-modal form label{display:block}
+.ai-modal label.inline-check{display:flex!important;align-items:center;gap:10px;text-transform:none;letter-spacing:normal;font-size:12px;line-height:1.4}
+.ai-modal input[type=checkbox]{display:inline-block;width:18px;height:18px;min-width:18px;flex:none;accent-color:#dfb771;margin:0}
+.ai-modal .ai-note{border:1px solid #85764c5c;border-radius:8px;padding:12px;background:#e2bb7820;color:#e4d4ba;font-size:12px;line-height:1.55}
+.ai-modal .divider{margin:22px 0 16px}
+.ai-modal .row-actions{margin-top:16px}
+.ai-modal #ai-status:not(:empty){padding:10px 12px;border-radius:7px;border:1px solid #7f9caa66;color:#c9e1e5}
+.entry-error{display:none;color:#ffb1a4;font-size:12px;margin-top:14px;border-radius:7px;padding:9px;background:#8b3d3d2b}
+.bot-options{margin:15px 0;display:grid;gap:8px;padding:12px;border-radius:8px;border:1px solid #66877a50;background:#72927f12}
+.bot-options button{justify-self:start}
+.bot-remove{display:block;margin:-2px 0 10px auto;font-size:10px;padding:5px 9px}
+.bot-tag{font:700 9px var(--body);letter-spacing:.07em;color:#111d24;background:#7fbaa9;border-radius:3px;padding:2px 5px;vertical-align:middle}
+@media(max-width:560px){.ai-modal{padding:18px;border-radius:11px}.ai-modal .modal-actions{margin-top:10px}}
