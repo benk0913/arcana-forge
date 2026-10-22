@@ -43,13 +43,20 @@ async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
  assert.ok(r.log.some(x=>/Bot Rival traveled/.test(x.text)));
  const fake={...world,title:'AI test',layers:world.layers,cells:world.cells,characters:world.characters,decks:world.decks,rules:world.rules};
  const normalized=normalizeWorld(fake,null,'create');assert.equal(normalized.title,'AI test');assert.ok(normalized.cells.some(c=>c.actions.some(a=>a.type==='victory')));
+ const fourLayer=JSON.parse(JSON.stringify(fake));fourLayer.theme.boardShape='square';fourLayer.theme.tileSize=7;
+ fourLayer.layers.push({id:'hell',name:'Hell',radius:10,color:'#aa3322'});
+ fourLayer.cells.push({id:'hell_1',layerId:'hell',name:'Underworld Throne',description:'Final realm',icon:'♛',size:5,actions:[{type:'victory',amount:1}],links:['inner_0']});
+ const normalizedFour=normalizeWorld(fourLayer,null,'create');
+ assert.equal(normalizedFour.layers.length,4);assert.equal(normalizedFour.theme.boardShape,'square');assert.equal(normalizedFour.theme.tileSize,7);
+ assert.equal(normalizedFour.cells.at(-1).size,5);
+
  const blocked=await fetch(base+'/api/ai/world',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({prompt:'make a world'})});assert.notEqual(blocked.status,200,'AI endpoints are locked until configured');
  // Exercise the complete provider adapter with synthetic model results (no API charges).
  process.env.AI_ADMIN_PASSWORD='testing-secret-123';process.env.GEMINI_API_KEY='not-a-real-key';
- const nativeFetch=global.fetch;let providerCalls=0;
+ const nativeFetch=global.fetch;let providerCalls=0,keysUsed=[];
  global.fetch=async(url,options)=>{
    if(String(url).startsWith('https://generativelanguage.googleapis.com/')){
-     providerCalls++;
+     providerCalls++;keysUsed.push(options.headers['x-goog-api-key']);
      const imageRequest=String(url).includes('flash-image');
      const parts=imageRequest?[{inlineData:{mimeType:'image/png',data:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/ld0AAAAASUVORK5CYII='}}]:[{text:JSON.stringify({...world,title:'AI Forest',cells:world.cells.slice(0,20),layers:world.layers.slice(0,2)})}];
      return new Response(JSON.stringify({candidates:[{content:{parts}}]}),{status:200,headers:{'Content-Type':'application/json'}});
@@ -61,8 +68,18 @@ async function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
  const generated=await(await nativeFetch(base+'/api/ai/world',{method:'POST',headers:aiHeaders,body:JSON.stringify({prompt:'Create the whispering forest'})})).json();assert.equal(generated.ok,true,JSON.stringify(generated));assert.equal(generated.world.title,'AI Forest');
  const imageResult=await(await nativeFetch(base+'/api/ai/image',{method:'POST',headers:aiHeaders,body:JSON.stringify({prompt:'Paint a mystical fortress on a floating island.',wide:true})})).json();
  assert.equal(imageResult.ok,true,JSON.stringify(imageResult));assert.match(imageResult.image,/^data:image\/png;base64,/);assert.equal(providerCalls,2);
+ // BYO Gemini key works without either Render environment variable, bypassing the old password requirement.
+ const formerServerKey=process.env.GEMINI_API_KEY,formerPassword=process.env.AI_ADMIN_PASSWORD;
+ delete process.env.GEMINI_API_KEY;delete process.env.AI_ADMIN_PASSWORD;
+ const personalHeaders={'Content-Type':'application/json','x-gemini-key':'fake-personal-Gemini-key-999'};
+ const personal=await(await nativeFetch(base+'/api/ai/world',{method:'POST',headers:personalHeaders,body:JSON.stringify({prompt:'Create a magical forest realm'})})).json();
+ assert.equal(personal.ok,true,JSON.stringify(personal));assert.equal(personal.world.title,'AI Forest');
+ const personalArt=await(await nativeFetch(base+'/api/ai/image',{method:'POST',headers:personalHeaders,body:JSON.stringify({prompt:'Paint a dramatic medieval castle illustration'})})).json();
+ assert.equal(personalArt.ok,true,JSON.stringify(personalArt));
+ assert.equal(keysUsed.at(-1),'fake-personal-Gemini-key-999');assert.equal(keysUsed.at(-2),'fake-personal-Gemini-key-999');
+ process.env.GEMINI_API_KEY=formerServerKey;process.env.AI_ADMIN_PASSWORD=formerPassword;
  global.fetch=nativeFetch;
 
- console.log('✓ Create-room immediate state, auth, bots add/remove, automated full turns, AI world validation, secured AI text/image requests (mock provider), and automated bot turns passed.');
+ console.log('✓ Create-room immediate state, auth, bots add/remove, automated full turns, AI world validation, server-password OR personal-key AI requests (mock provider), and automated bot turns passed.');
  for(const s of [host,guest]){s.res.destroy();s.req.destroy();}server.close();
 })().catch(e=>{console.error(e);process.exit(1);});

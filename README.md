@@ -1,108 +1,85 @@
-# Talismaker
+# Talismaker v1.2 — game-style menus and guided World Workshop
 
-**Create any fantasy adventure board. Invite friends. Play with or against bots.**
+Talismaker is a browser-based customizable fantasy board-adventure for friends and bot players. It is an original game toolkit, not an official adaptation of Talisman.
 
-Talismaker is an original, browser-based, customizable fantasy board-adventure game inspired by classic Talisman-style exploration. It includes visual world editing, editable cards and heroes, multiplayer rooms, automated opponents and an optional AI Studio for generating worlds and illustrations.
+## Update your existing Render website (no Node.js installation)
 
-## Already hosting the old version on Render? Update it
+1. **Back up** important worlds: on your existing website, export their JSON files before updating.
+2. Extract `Talismaker_v1.2.zip`. Upload the **contents of its `Talismaker/` folder** (not the outer folder) into your existing GitHub repository. Keep `public/`, `lib/`, `server.js`, `package.json`, and other subfolders in their original locations.
+3. Commit the changes. Render should deploy the new commit automatically. Otherwise, use **Manual Deploy → Deploy latest commit**.
+4. Refresh the original Render website, optionally using Ctrl+Shift+R. The web app cache name is bumped to v3 so previous code is replaced.
 
-You do **not** need Node.js on your computer.
+Keep your existing Render settings: **Build Command** `npm install` and **Start Command** `node server.js`. You do not need Node.js on your own PC; Render runs it for you. There are no third-party npm dependencies.
 
-1. Download `Talismaker_Multiplayer_v1.1.zip` and extract it.
-2. Open the GitHub repository already connected to your Render Web Service.
-3. Replace the existing project files with the **contents of the `Talismaker/` directory** from the extracted download. Keep the same GitHub repository; there is no need to create another Render service. Upload all files, including the `lib/` and `public/` folders. Commit the changes.
-4. In the Render dashboard, check **Events** to see that the new commit automatically deployed. If auto-deploy is disabled, select **Manual Deploy → Deploy latest commit**.
-5. Open the existing public Render URL. Refresh the page (on desktop try Ctrl+Shift+R). The service worker has been versioned so older assets can be replaced.
+> Your existing worlds are still read from the original browser storage key `arcana-forge-worlds-v1`, so this update does **not** reset your world library on the same browser and same site domain. Export/import JSON to transfer worlds between browsers or sites.
 
-Render's usual values are: **Runtime:** Node, **Build:** `npm install`, **Start:** `node server.js`, **Instance type:** Free. No additional npm dependencies or build system is required. Render installs Node itself.
+## New game menu flow
 
-**Important:** Export any particularly valuable worlds to JSON as a backup before updating. The new app deliberately retains the old browser-storage key (`arcana-forge-worlds-v1`) so worlds you created on the same origin/browser continue to appear after the rename. If you switch domains or browsers, use Export/Import to move your worlds.
+The main screen is now a game-style menu, not a website dashboard:
 
-## What changed in version 1.1
+- **Play Adventure** → Choose a saved world → Host Room → Select Hero/Add Bots → Begin Adventure.
+- **World Workshop** → Select an existing world, create a blank world, import a world, or generate one with AI.
+- **Join a Friend** → Enter invitation code → Select Hero → Play.
+- **How to Play** → Read the controls.
 
-- Renamed all visible branding and the PWA to **Talismaker**.
-- Fixed **Create Room / Join Room** not submitting: clicking within the dialog was previously intercepted as a backdrop click and its default form action was cancelled.
-- Room creation/join responses now include the initial room state, so the lobby opens even if a real-time update is delayed. Active rooms also have a low-frequency state synchronization fallback.
-- Hosts can **Add Bot Player / Remove bot** in a lobby. Bots reserve character slots and automatically roll, choose destinations, fight, resolve shops and rewards, and end turns. They are controlled on the server and can play even when the host tab is closed, provided the hosted service is running. Bot decisions are rule-based (not paid LLM calls).
-- Added **AI Studio**: create a world from a written prompt, edit the existing world with instructions, optionally auto-generate the world backdrop, and generate individual illustrations for the selected space, hero or card.
+You cannot edit or create worlds while in a multiplayer room (even as host). The server rejects attempts to change a room's world after room creation, including in the lobby. **Finish and save your world first**; after leaving your current room you may edit it in the Workshop and host a new session.
 
-## Enable AI Studio on Render
+### World Workshop wizard
 
-AI Studio is an **optional** feature. The ordinary world builder, multiplayer, and bots work without an API key.
+Six steps: **World** (title, art, map shape, tile size) → **Realms** → **Spaces** (links and action effects) → **Heroes** → **Cards** → **Rules**. Use **Previous/Next**, or select a named step directly. Choose **Save Draft** at any time or **Save & Finish** at the last step. Saving returns you to your World Workshop library. To play, go back to the Main Menu → Play Adventure.
 
-1. Get a Gemini API key from [Google AI Studio](https://aistudio.google.com/apikey). Availability, billing and rate limits are determined by Google. **Image generation may cost money** and is not guaranteed to be included in the free API tier.
-2. Open **Render Dashboard → your Talismaker Web Service → Environment**.
-3. Add the following **environment variables** (do not put them in `app.js`, GitHub, or `.env` files committed to your repo):
+**Map shape:** On Step 1, select **Sphere / Round** for concentric circular paths, or **Square** for square-loop paths. Adjust **Default tile size (%)** (4–18). To override the size of an individual space, open **Step 3 – Spaces** and set its **Tile size (%)** (0 uses the board default). Shapes and sizes persist in saved/exported world JSON and display for all players.
 
-   | Name | Value |
-   | --- | --- |
-   | `GEMINI_API_KEY` | Your Google Gemini API key |
-   | `AI_ADMIN_PASSWORD` | A private, strong password of at least 8 characters |
+## AI Studio: where to put the Gemini API key
 
-4. Save/redeploy your service.
-5. On your live site, click **Create with AI** on the home screen, or open **World Builder → AI Studio**. Enter the AI Studio password set above.
-6. Write a prompt such as: *“Create a four-hero gothic vampire adventure with cursed villages, rival vampire lords, enchanted relics, and an inner throne that wins the game.”* Click **Generate World**. Leave **Also generate a matching board illustration** checked if desired.
-7. To **edit** your existing adventure, open that world's editor, click AI Studio, choose **Edit this existing adventure**, and describe the changes. The editor preserves existing artwork when retained objects have the same IDs. Edit results are drafts until you click **Save** or **Apply to Lobby**.
-8. For individual images, select a particular space, hero or card in the editor, open AI Studio, choose its target in **Illustration generator**, and enter the art direction. It will be placed into the world as an embedded image.
+**You no longer have to configure `AI_ADMIN_PASSWORD` on Render when using your own Gemini key.** The error about setting a server password came from the old version's mandatory server-side authentication check.
 
-### Optional AI configuration
+1. Get a **Gemini API key** from [Google AI Studio](https://aistudio.google.com/apikey). This is separate from your site password.
+2. Open **World Workshop** → **Create with AI**, or create/open a world and press **AI World Studio** in Step 1.
+3. Paste your Gemini API key into the new **Gemini API key** box in the AI Studio window.
+4. Select **Create an entirely new adventure** or **Edit this existing adventure**.
+5. Write your world prompt and select **Generate World**. An option also asks Gemini to generate an illustrated board background. You can later create standalone illustrations for the board, selected spaces, heroes or cards.
+6. Close AI Studio, review the world in the six-step editor, and **Save Draft** or **Save & Finish**.
 
-The following are available as Render environment variables if you need different compatible Gemini models:
+The key is held **only in this open page's memory**, not localStorage, source code, server rooms or JSON exports. The key is sent to your own hosting server over HTTPS as a request header and forwarded to Google's Gemini API, **without being stored or logged by Talismaker**. Reloading the page clears it. Only paste an API key into your own trusted deployment, and never paste it into a publicly shared chat or commit it to GitHub.
 
-- `GEMINI_TEXT_MODEL` — default `gemini-2.5-flash` (world writing/editing)
-- `GEMINI_IMAGE_MODEL` — default `gemini-2.5-flash-image` (original illustrations)
+**Alternative for a shared site:** The site owner can set `GEMINI_API_KEY` and `AI_ADMIN_PASSWORD` (8+ characters) in Render → Web Service → Environment. With this mode, leave the per-session key field empty and enter the creator password inside **Or use a server-configured Gemini key**. The password is required only for requests funded through the hosting owner's key. Keep it secret. If you have previously disclosed that password, change it in Render.
 
-Google can rename/deprecate models; check [Gemini API docs](https://ai.google.dev/gemini-api/docs/image-generation). AI calls require server access to Google's API. Talismaker does not ship API credits or a bundled model. The app enforces a creator password, a request-size limit and an AI concurrency limit to reduce unauthorized cost exposure. Never share your Render environment values or AI Studio password with visitors who should not be generating images. AI output is checked and normalized into Talismaker's supported game format; review generated worlds before publishing.
+AI world writing uses `gemini-2.5-flash` by default; illustrations use `gemini-2.5-flash-image` (override through `GEMINI_TEXT_MODEL` / `GEMINI_IMAGE_MODEL` in the environment if appropriate). Actual model access, availability, quotas and billing are controlled by Google; **image generation may incur fees**. The built-in AI endpoint tests use simulated provider responses and never charge API credits. World-generation instructions now explicitly respect a requested 4-layer adventure instead of forcing only 2–3 layers.
 
-## Play with bots
+## Other gameplay features
 
-1. Host any adventure and enter the **lobby**.
-2. Under **The Party**, click **+ Add Bot Player**. The server chooses an available hero. You can add bots up to the configured player cap and the number of characters.
-3. Remove a bot before starting if desired. Bot addition/removal is host-only and available before a game starts.
-4. Click **Begin Adventure**. Once a bot's turn arrives, it plays automatically, with short pauses so human players can observe its actions.
+- Custom boards, up to 12 realm layers and 160 spaces, draggable placement and extra route links.
+- Heroes, character statistics, adventure encounters, custom items and spells, shop and choice events.
+- Server-controlled bot players automatically take turns, fight and resolve encounters; no Gemini key required for bots.
+- Six-character rooms, real-time updates, friend invitations and in-game chat.
+- Three starter adventures and browser JSON import/export.
+- Responsive desktop/mobile interface and an installable web app.
 
-Bots use deterministic rules with basic objective-seeking and resource preferences, not a third-party AI model. Humans and bots follow the same movement, combat, shop, choice and victory systems.
+## Data persistence warning
 
-## Other features
-
-- Edit board identities, backgrounds, colors and world descriptions.
-- Create up to 12 realms and 160 spaces; drag spaces, connect links, assign actions.
-- Edit heroes and their starting stats, names, colors, icons and portraits.
-- Build custom adventure, item and spell decks (up to 150 cards per type).
-- Turn-based movement, combat, spell use, Fate rerolls, equipment, shop encounters, branching choices, and victory effects.
-- Private 6-character invite codes, links, lobby chat, live turns and reconnecting.
-- Three included starter worlds, JSON import/export, responsive phone and desktop layout, and an installable web app.
-
-## Free hosting and persistence
-
-Talismaker can run on Render's free Node Web Service, and you don't need Node installed on your own PC. However, **Render Free uses an ephemeral filesystem**. Server-room progress stored in `data/rooms.json` can disappear on restart, spin-down or redeployment. Your world **library** is stored in that browser's localStorage; export world JSON for durable backups and cross-device sharing. A long-lived public service needs an external persistent database and account system as a later feature.
-
-As in the earlier release, this is an original fantasy game creator, **not official Talisman software**. It is a functioning first version, not a full commercial game platform with accounts, moderation, trading, cloud asset storage or extensive scripting.
+On **Render Free**, local server files are ephemeral; saved rooms in `data/rooms.json` may be lost after server sleeping, restarting or redeploying. A future persistent database would be needed for long-lived online games. World designs are saved in the local browser; export JSON files as backups. The app does not yet include accounts or cloud world libraries.
 
 ## Run locally (optional)
 
-If you *do* have Node.js 18 or newer, double-click **Start Talismaker.bat** on Windows or run `node server.js` from the project directory. Then open `http://localhost:3000`. To test, run `npm test`. No npm dependencies are needed.
+If you have Node.js 18+ installed, run `node server.js` inside the folder, or double-click **Start Talismaker.bat** on Windows, then open `http://localhost:3000`. `npm test` runs frontend, multiplayer, bot and simulated AI API tests.
 
-## Project files
+### Project layout
 
 ```text
 Talismaker/
-├── server.js                  Multiplayer gameplay, bot turns and room sync
-├── lib/
-│   ├── ai.js                  Authenticated AI generation via Gemini (server-side)
-│   ├── realtime.js            Live room updates and commands (SSE/HTTP)
-│   └── static.js              Static asset server
-├── public/
-│   ├── index.html             Web app
-│   ├── app.js                 Editor, game UI, AI Studio UI
-│   ├── styles.css             Responsive styling
-│   ├── defaults.js            Sample worlds
-│   ├── realtime-client.js     Live updates + room-sync fallback
-│   ├── manifest.webmanifest   Installable mobile app metadata
-│   └── sw.js                  Service worker
-├── test/                      Gameplay, bots, AI adapter and frontend tests
-├── data/                      Active rooms (ephemeral on Render Free)
-├── Start Talismaker.bat       Optional local launcher
-├── Dockerfile
-└── package.json
+  server.js                  Multiplayer game server and bots
+  lib/ai.js                  Gemini proxy, per-session keys or protected server key
+  lib/realtime.js            Live game room protocol
+  lib/static.js              Static file server
+  public/app.js              Game UI and guided editor
+  public/styles.css          Styles and mobile layouts
+  public/defaults.js         Starter worlds
+  public/index.html          Entry point
+  public/realtime-client.js  Room state synchronization
+  public/sw.js               Versioned app cache
+  test/                      Automated tests
+  data/.gitkeep              Empty data directory placeholder
+  package.json
+  Start Talismaker.bat
 ```

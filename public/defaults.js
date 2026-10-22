@@ -54,12 +54,12 @@
     ['Orin Moss','The Wandering Tinkerer','⚒','#95bcb0',5,3,4,2,3]
   ].map(([name,title,icon,color,health,strength,craft,fate,gold],i)=>({id:`hero_${i}`,name,title,icon,color,health,strength,craft,fate,gold,image:''}));
   const makeDefault=()=>({id:uid(),title:'The Shattered Realms',tagline:'A journey through three worlds to claim the Aether Throne.',description:'Explore forgotten places, overcome enemies, collect arcane treasures, and reach the innermost throne before your rivals.',
-    theme:{accent:'#d8af70',background:'#101722',boardImage:''},layers:JSON.parse(JSON.stringify(layerData.map(({id,name,radius,color})=>({id,name,radius,color})))),cells:JSON.parse(JSON.stringify(cells)),characters:JSON.parse(JSON.stringify(characters)),decks:{adventure:JSON.parse(JSON.stringify(adventure)),item:JSON.parse(JSON.stringify(items)),spell:JSON.parse(JSON.stringify(spells))},rules:{startCellId:'outer_0',maxPlayers:6,diceSides:6,enemyDamage:1,respawnGoldLossPct:50}});
+    theme:{accent:'#d8af70',background:'#101722',boardImage:'',boardShape:'sphere',tileSize:9},layers:JSON.parse(JSON.stringify(layerData.map(({id,name,radius,color})=>({id,name,radius,color})))),cells:JSON.parse(JSON.stringify(cells)),characters:JSON.parse(JSON.stringify(characters)),decks:{adventure:JSON.parse(JSON.stringify(adventure)),item:JSON.parse(JSON.stringify(items)),spell:JSON.parse(JSON.stringify(spells))},rules:{startCellId:'outer_0',maxPlayers:6,diceSides:6,enemyDamage:1,respawnGoldLossPct:50}});
   const makeBlank=()=>{const s=makeDefault();s.id=uid();s.title='Untitled World';s.tagline='An adventure of your own making.';s.description='Write your story here.';s.layers=[{id:'land_1',name:'The First Lands',radius:39,color:'#9bb09b'}];s.cells=Array.from({length:12},(_,i)=>({id:uid(),layerId:'land_1',name:`Space ${i+1}`,subtitle:'DISCOVER',description:'A new adventure starts here.',icon:'✦',color:'',image:'',x:null,y:null,actions:[{type:i===11?'victory':'draw_adventure',amount:1,text:''}],links:[]}));s.rules.startCellId=s.cells[0].id;s.theme.accent='#93c8a9';return s;};
   const makeClockwork=()=>{
     const s=makeDefault();s.title='The Clockwork Expanse';s.tagline='A mechanical empire where time itself can be stolen.';
     s.description='Cross the copper wastelands and ticking citadels to reach the engine of eternity.';
-    s.theme={accent:'#d9a777',background:'#211a1c',boardImage:''};
+    s.theme={accent:'#d9a777',background:'#211a1c',boardImage:'',boardShape:'sphere',tileSize:9};
     s.layers.forEach((l,i)=>{l.name=['The Brass Frontier','The Ember Mechanism','The Chrono Core'][i];l.color=['#bfa06a','#d07f66','#9e9dd1'][i];});
     const names=[['Gearspring Tavern','The Rust Dunes','Copper Caravan','Steam Hollow','The Sunken Foundry','Winding Bazaar','Cogwheel Woods','The Great Lift','Ashbank','Railway Junction','The Brass Market','Clockmaker’s Refuge','The Millworks','Glassworks','Tinker’s Tower','Boiler Wells','Scrapspire','Imperial Airship'],['The Soot Cathedral','Aether Furnace','Geargrave','Pendulum Court','The Gearwarden','The Coil Labyrinth','Midnight Observatory','Pressure Gates','The Machine Orchard','Cinder Gallery','The Broken Automaton','The Copper Gate'],['Sands of Time','The Eternal Bell','Paradox Chamber','Aether Dynamo','Final Gear','The World Engine']];
     s.cells.forEach((c,i)=>{const l=s.layers.findIndex(x=>x.id===c.layerId);const at=s.cells.slice(0,i).filter(x=>x.layerId===c.layerId).length;c.name=names[l][at];c.subtitle=['THE BRASS FRONTIER','THE INNER MACHINE','THE CORE'][l];c.description=`The machinery of ${c.name} whispers of a buried empire.`;c.icon=['⚙','◆','✦','⚒','✧','♜'][i%6];});
@@ -71,7 +71,7 @@
   const makeTides=()=>{
     const s=makeDefault();s.title='Tides of the Lost Moon';s.tagline='Chart haunted waters and find the crown beneath the waves.';
     s.description='Voyage between cursed archipelagos, trade relics, and challenge the leviathans.';
-    s.theme={accent:'#81c1c1',background:'#0b1e2a',boardImage:''};
+    s.theme={accent:'#81c1c1',background:'#0b1e2a',boardImage:'',boardShape:'sphere',tileSize:9};
     s.layers=s.layers.slice(0,2);s.layers[0].name='The Broken Archipelago';s.layers[0].radius=42;s.layers[0].color='#72b5af';s.layers[1].name='The Sunken Kingdom';s.layers[1].radius=24;s.layers[1].color='#7994c7';
     const outer=['Harbor of Mists','Shell Island','Blackwater Shoals','The Coral Labyrinth','Mermaid’s Wake','Smuggler’s Haven','Tempest Cape','Sea Witch Reef','The Drowned Bell','Siren’s Rest','The Broken Fleet','Pearl Lagoon','Tidewatch','The Moonlit Dock'];
     const inner=['Abyssal Gate','The Last Lighthouse','Leviathan’s Keep','Temple of Pearls','The Deep Archive','Throne of Tides','The Sunken Garden','The Lost Moon'];
